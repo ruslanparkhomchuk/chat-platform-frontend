@@ -1,6 +1,18 @@
-function extractErrorMessage(err: any) {
-	const errorMessage =
-		err.graphQLErrors[0]?.extensions?.originalError?.message;
+import { CombinedGraphQLErrors } from "@apollo/client";
+
+function extractErrorMessage(err: unknown) {
+	let errorMessage: string | string[] | undefined;
+
+	if (CombinedGraphQLErrors.is(err)) {
+		const firstError = err.errors[0];
+		const originalError = firstError?.extensions?.originalError as
+			{ message?: string | string[] } | undefined;
+
+		errorMessage = originalError?.message ?? firstError?.message;
+	} else if (err instanceof Error) {
+		errorMessage = err.message;
+	}
+
 	if (!errorMessage) {
 		return;
 	}
